@@ -2,7 +2,7 @@
 This project aims to be a very simple wrapper around deno_mongo driver for MongoDB database. Yongo is inspired by Mongoose in Node.js but will not try to implement all of its functionality.
 
 ## Installation
-Will soon be hosted on deno.land and be ready for usage.
+Will soon be hosted on deno.land and be ready for usage. test.
 
 ## Usage
 Example usage is in `./examples` folder and is updated regularly to include every aspect.
