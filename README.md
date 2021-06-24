@@ -2,7 +2,7 @@
 This project aims to be a very simple wrapper around deno_mongo driver for MongoDB database. Yongo is inspired by Mongoose in Node.js but will not try to implement all of its functionality.
 
 ## Installation
-Will soon be hosted on deno.land and be ready for usage. test.
+Yongo is hosted at [https://deno.land/x/yongo](https://deno.land/x/yongo)
 
 ## Usage
 Example usage is in `./examples` folder and is updated regularly to include every aspect.
@@ -10,7 +10,7 @@ Example usage is in `./examples` folder and is updated regularly to include ever
 Yongo works like this:
 
 ```
-import { connect, Yodel } from '...';
+import { connect, Yodel } from 'https://deno.land/x/yongo@LATEST_VERSION/mod.ts';
 
 await connect('HOST', 'PORT', 'DB_NAME');
 
