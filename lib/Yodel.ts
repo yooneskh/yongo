@@ -1,4 +1,4 @@
-import { getDatabaseName, getClient } from './Yonnection.ts';
+import { getDatabase } from './Yonnection.ts';
 import { plural, Bson } from '../deps.ts';
 
 export interface IDocumentProperties {
@@ -13,23 +13,13 @@ export class Yodel<T> {
 
   constructor(private name: string) { }
 
-  private getDatabase() {
-
-    // if (this.database) return this.database!;
-    // this.database = getClient().database(getDatabaseName());
-    // return this.database!;
-
-    return getClient().database(getDatabaseName());
-
-  }
-
   private getCollection() {
 
     // if (this.collection) return this.collection!;
     // this.collection = this.getDatabase().collection<T>(plural(this.name));
     // return this.collection!;
 
-    return this.getDatabase().collection<T & IDocumentProperties>(plural(this.name));
+    return getDatabase().collection<T & IDocumentProperties>(plural(this.name));
 
   }
 

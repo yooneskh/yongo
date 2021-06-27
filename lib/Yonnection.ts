@@ -1,4 +1,5 @@
 import { MongoClient } from '../deps.ts';
+import { plural } from '../deps.ts';
 
 let client: MongoClient | undefined;
 let databaseName: string | undefined;
@@ -23,4 +24,8 @@ export function getDatabaseName(): string {
 export function getClient(): MongoClient {
   if (!client) throw new Error('client not connected yet.');
   return client;
+}
+
+export function getDatabase() {
+  return getClient().database(plural(getDatabaseName()));
 }
