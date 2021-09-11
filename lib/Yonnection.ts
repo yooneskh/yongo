@@ -1,31 +1,59 @@
 import { MongoClient } from '../deps.ts';
-import { plural } from '../deps.ts';
 
-let client: MongoClient | undefined;
-let databaseName: string | undefined;
 
-export async function connect(host: string, port: string, database: string) {
-  try {
-    client = new MongoClient();
-    await client.connect(`mongo://${host}:${port}/${database}`);
-    databaseName = database;
+const yonnectionsMap: Map<string, Yonnection> = new Map();
+
+
+export class Yonnection {
+
+  private client: MongoClient | undefined;
+
+  constructor(private connectionString: string, private name?: string) {
+
+    if (yonnectionsMap.has(name ?? '__default')) {
+      throw new Error(`connection is already used ${name ?? 'default'}`);
+    }
+
   }
-  catch (error) {
-    client = undefined;
-    throw error;
+
+  public async connect() {
+    try {
+      this.client = new MongoClient();
+      await this.client.connect(this.connectionString);
+      yonnectionsMap.set(this.name ?? '__default', this);
+    }
+    catch (error) {
+      this.client = undefined;
+      throw error;
+    }
   }
+
+  public getClient(): MongoClient {
+    if (!this.client) {
+      throw new Error('client is not connected.');
+    }
+
+    return this.client;
+
+  }
+
+  public disconnect() {
+    this.client?.close();
+    yonnectionsMap.delete(this.name ?? '__default');
+  }
+
 }
 
-export function getDatabaseName(): string {
-  if (!client) throw new Error('client not connected yet.');
-  return databaseName!;
+
+export function getYonnection(name?: string): Yonnection {
+  if (!yonnectionsMap.has(name ?? '__default')) {
+    throw new Error(`${name ?? 'default'} connection has not been made.`);
+  }
+
+  return yonnectionsMap.get(name ?? '__default')!;
+
 }
 
-export function getClient(): MongoClient {
-  if (!client) throw new Error('client not connected yet.');
-  return client;
-}
-
-export function getDatabase() {
-  return getClient().database(plural(getDatabaseName()));
+export function getDefaultYonnection() {
+  return getYonnection();
 }
