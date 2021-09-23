@@ -1,28 +1,26 @@
-import { connect, Yodel } from '../mod.ts';
+import { Yonnection, Yuery } from '../mod.ts';
 import { log } from '../util/log.ts';
 
 
-await connect('127.0.0.1', '27017', 'test');
+await new Yonnection('mongo://127.0.0.1:27017/test').connect();
+await new Yuery('users').deleteMany();
 
 
-interface IUserBase {
-  name: string;
-}
-
-const UserModel = new Yodel<IUserBase>('User');
-
-const madeUser = await UserModel.create({
-  name: 'Yoones Khoshghadam'
-});
-
+const insertQuery = new Yuery('users');
+insertQuery.put('name', 'Yoones');
+insertQuery.put('lastName', 'Khoshghadam');
+insertQuery.put('phones', [{ phone: '123123' }]);
+await insertQuery.insert();
+const madeUser = await insertQuery.insert();
 log({ madeUser });
 
+const query = new Yuery('users');
+query.with({ name: 'Yoones' });
+const usersWithNameYoones = await query.query();
+log({ usersWithNameYoones });
 
-const foundUser = await UserModel.findById(madeUser._id);
-
-if (!foundUser) {
-  console.log('user not found.');
-}
-else {
-  log({ foundUser });
-}
+const updateQuery = new Yuery('users');
+updateQuery.with({ name: 'Yoones' });
+updateQuery.put('middleName', 'the313th');
+const editResult = await updateQuery.commit();
+log({ editResult });

@@ -1,8 +1,7 @@
 export {
-  connect,
-  getClient
+  Yonnection
 } from './lib/Yonnection.ts';
 
 export {
-  Yodel
-} from './lib/Yodel.ts';
+  Yuery
+} from './lib/Yuery.ts';

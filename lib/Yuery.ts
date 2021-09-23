@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
-import { deepMerge, Database } from '../deps.ts';
+
+import { deepMerge, Database, Collection } from '../deps.ts';
 import { Yonnection, getDefaultYonnection } from './Yonnection.ts';
 
 
@@ -14,19 +15,25 @@ export class Yuery {
   private skip: number | undefined;
 
   private database: Database;
+  private collection: Collection<unknown>;
 
-  constructor(private collection: string, yonnection?: Yonnection) {
+  constructor(collectionName: string, yonnection?: Yonnection) {
     this.yonnection = yonnection ?? getDefaultYonnection();
     this.database = this.yonnection.getClient().database();
+    this.collection = this.database.collection(collectionName);
+  }
+
+  private getPayload() {
+    return JSON.parse(JSON.stringify(this.payload));
   }
 
 
-  public with(queryFragment: any) {
-    this.filters = deepMerge(this.filters, queryFragment);
+  public with(query: any) {
+    this.filters = deepMerge(this.filters, query);
   }
 
-  public sort(sortFragment: any) {
-    this.sorts = deepMerge(this.sorts, sortFragment);
+  public sort(sort: any) {
+    this.sorts = deepMerge(this.sorts, sort);
   }
 
   public put(key: string, value: any) {
@@ -40,7 +47,7 @@ export class Yuery {
 
   public query(): Promise<any[]> {
 
-    const query = this.database.collection(this.collection).find(this.filters);
+    const query = this.collection.find(this.filters);
 
     query.sort(this.sorts);
     if (this.limit) query.limit(this.limit);
@@ -51,31 +58,32 @@ export class Yuery {
   }
 
   public queryOne(): Promise<any> {
-    return this.database.collection(this.collection).findOne(this.filters);
+    return this.collection.findOne(this.filters);
   }
 
   public count(): Promise<number> {
-    return this.database.collection(this.collection).countDocuments(this.filters);
+    return this.collection.countDocuments(this.filters);
   }
 
-  public create(): Promise<any> {
-    return this.database.collection(this.collection).insertOne(this.payload);
+  public async insert(): Promise<any> {
+    const id = await this.collection.insertOne(this.getPayload());
+    return this.collection.findOne({ _id: id }); // todo: check if payload itself has all ids
+  }
+
+  public commitMany() {
+    return this.collection.updateMany(this.filters, this.getPayload());
   }
 
   public commit() {
-    return this.database.collection(this.collection).updateMany(this.filters, this.payload);
+    return this.collection.updateOne(this.filters, this.getPayload());
   }
 
-  public commitOne() {
-    return this.database.collection(this.collection).updateOne(this.filters, this.payload);
+  public deleteMany() {
+    return this.collection.deleteMany(this.filters);
   }
 
   public delete() {
-    return this.database.collection(this.collection).deleteMany(this.filters);
-  }
-
-  public deleteOne() {
-    return this.database.collection(this.collection).deleteOne(this.filters);
+    return this.collection.deleteOne(this.filters);
   }
 
 }
