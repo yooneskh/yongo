@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 
-import { deepMerge, Database, Collection } from '../deps.ts';
+import { deepMerge, Database, Collection, ObjectId } from '../deps.ts';
 import { Yonnection, getDefaultYonnection } from './Yonnection.ts';
 
 
@@ -23,8 +23,31 @@ export class Yuery {
     this.collection = this.database.collection(collectionName);
   }
 
-  private getPayload() {
-    return JSON.parse(JSON.stringify(this.payload));
+
+  private normalizeObject(object: any) {
+    for (const value of Object.values(object)) {
+      if (Array.isArray(value)) {
+
+        for (const arrayItem of value) {
+          if (typeof arrayItem === 'object' && !Array.isArray(arrayItem) && arrayItem !== null) {
+
+            if (!arrayItem._id) {
+              arrayItem._id = new ObjectId();
+            }
+
+            this.normalizeObject(arrayItem);
+
+          }
+        }
+
+      }
+    }
+  }
+
+  private getNormalizedPayload() {
+    const payload = JSON.parse(JSON.stringify(this.payload));
+    this.normalizeObject(payload);
+    return payload;
   }
 
 
@@ -66,16 +89,16 @@ export class Yuery {
   }
 
   public async insert(): Promise<any> {
-    const id = await this.collection.insertOne(this.getPayload());
+    const id = await this.collection.insertOne(this.getNormalizedPayload());
     return this.collection.findOne({ _id: id }); // todo: check if payload itself has all ids
   }
 
   public commitMany() {
-    return this.collection.updateMany(this.filters, this.getPayload());
+    return this.collection.updateMany(this.filters, this.getNormalizedPayload());
   }
 
   public commit() {
-    return this.collection.updateOne(this.filters, this.getPayload());
+    return this.collection.updateOne(this.filters, this.getNormalizedPayload());
   }
 
   public deleteMany() {

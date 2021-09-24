@@ -9,7 +9,7 @@ await new Yuery('users').deleteMany();
 const insertQuery = new Yuery('users');
 insertQuery.put('name', 'Yoones');
 insertQuery.put('lastName', 'Khoshghadam');
-insertQuery.put('phones', [{ phone: '123123' }]);
+insertQuery.put('phones', [{ phone: '123123', addresses: [{ name: 'home' }] }]);
 await insertQuery.insert();
 const madeUser = await insertQuery.insert();
 log({ madeUser });
