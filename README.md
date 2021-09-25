@@ -1,4 +1,4 @@
-# Yodel
+# Yongo
 This project aims to be a very simple wrapper around deno_mongo driver for MongoDB database. Yongo is inspired by Mongoose in Node.js but will not try to implement all of its functionality.
 
 ## Installation
@@ -10,21 +10,47 @@ Example usage is in `./examples` folder and is updated regularly to include ever
 Yongo works like this:
 
 ```
-import { connect, Yodel } from 'https://deno.land/x/yongo@LATEST_VERSION/mod.ts';
+import { connect, Query } from 'https://deno.land/x/yongo@LATEST_VERSION/mod.ts';
 
-await connect('HOST', 'PORT', 'DB_NAME');
+await connect('mongo://host:port/dbname');
 
-interface IUser {
-  name: string;
-}
 
-const UserModel = new Yodel<IUser>('User');
+const query = new Query<interface>('collection');
 
-const creatdUser = await UserModel.create({
-  name: 'Yoones Khoshghadam'
-});
+query.where({ filter object });
 
-console.log(createdUser._id, createdUser.name); // type is inferred correctly
+query.projectIn('name');
+query.projectOut('lastName');
+
+query.sort({ sort object });
+
+query.populate({ path: 'owner', collection: 'users' });
+
+await query.query();
+await query.queryOne();
+await query.count();
+
+// to create
+
+const query = new Query<interface>('collection');
+
+query.put('name', 'Yoones');
+query.put('lastName', 'Khoshghadam');
+
+const insertedDocument = await query.insert();
+
+// to change
+
+const query = new Query<interface>('collection');
+
+query.where({ name: 'Yoones' });
+query.put('age', 26);
+
+await query.commit();
+await query.commitMany();
+
+await query.delete();
+await query.deleteMany();
 ```
 
 ## License
