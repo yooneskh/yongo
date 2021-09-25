@@ -57,18 +57,48 @@ export class Yuery<T> {
     return payload;
   }
 
-  private async populateDcoument(doucment: any, keyPrefix = '') {
-    for (const key of Object.keys(doucment)) {
+  private async populateDcoument(document: any, keyPrefix = '') {
+    for (const key of Object.keys(document)) {
 
       const populate = this.populates.find(it => it.path === (!keyPrefix ? key : `${keyPrefix}.${key}`));
       if (!populate) continue;
 
-      const query = new Yuery(populate.collection, this.yonnection);
-      query.where({ _id: new ObjectId(doucment[key]) }); // todo: select only wanted fields
-      doucment[key] = await query.queryOne();
+      if (Array.isArray(document[key])) {
 
-      if (doucment[key]) {
-        await this.populateDcoument(doucment[key], `${keyPrefix}.${key}`);
+        const query = new Yuery(populate.collection, this.yonnection);
+        query.where({ _id: { $in: document[key].map((it: any) => it instanceof ObjectId ? it : new ObjectId(it)) }});
+        document[key] = await query.query();
+
+        if (document[key]) {
+          await Promise.all(
+            document[key].map((it: any) =>
+              this.populateDcoument(it, !keyPrefix ? key : `${keyPrefix}.${key}`)
+            )
+          );
+        }
+
+      }
+      else if (typeof document[key] === 'string') {
+
+        const query = new Yuery(populate.collection, this.yonnection);
+        query.where({ _id: new ObjectId(document[key]) }); // todo: select only wanted fields
+        document[key] = await query.queryOne();
+
+        if (document[key]) {
+          await this.populateDcoument(document[key], !keyPrefix ? key : `${keyPrefix}.${key}`);
+        }
+
+      }
+      else if (document[key] instanceof ObjectId) {
+
+        const query = new Yuery(populate.collection, this.yonnection);
+        query.where({ _id: document[key] }); // todo: select only wanted fields
+        document[key] = await query.queryOne();
+
+        if (document[key]) {
+          await this.populateDcoument(document[key], !keyPrefix ? key : `${keyPrefix}.${key}`);
+        }
+
       }
 
     }
@@ -129,11 +159,11 @@ export class Yuery<T> {
   }
 
   public commitMany() {
-    return this.collection.updateMany(this.filters, this.getNormalizedPayload());
+    return this.collection.updateMany(this.filters, { $set: this.getNormalizedPayload() } as any);
   }
 
   public commit() {
-    return this.collection.updateOne(this.filters, this.getNormalizedPayload());
+    return this.collection.updateOne(this.filters, { $set: this.getNormalizedPayload() } as any);
   }
 
   public deleteMany() {
