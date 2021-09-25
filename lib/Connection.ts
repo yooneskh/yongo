@@ -1,16 +1,16 @@
 import { MongoClient } from '../deps.ts';
 
 
-const yonnectionsMap: Map<string, Yonnection> = new Map();
+const connectionsMap: Map<string, Connection> = new Map();
 
 
-export class Yonnection {
+export class Connection {
 
   private client: MongoClient | undefined;
 
   constructor(private connectionString: string, private name?: string) {
 
-    if (yonnectionsMap.has(name ?? '__default')) {
+    if (connectionsMap.has(name ?? '__default')) {
       throw new Error(`connection is already used ${name ?? 'default'}`);
     }
 
@@ -20,7 +20,7 @@ export class Yonnection {
     try {
       this.client = new MongoClient();
       await this.client.connect(this.connectionString);
-      yonnectionsMap.set(this.name ?? '__default', this);
+      connectionsMap.set(this.name ?? '__default', this);
     }
     catch (error) {
       this.client = undefined;
@@ -39,21 +39,25 @@ export class Yonnection {
 
   public disconnect() {
     this.client?.close();
-    yonnectionsMap.delete(this.name ?? '__default');
+    connectionsMap.delete(this.name ?? '__default');
   }
 
 }
 
 
-export function getYonnection(name?: string): Yonnection {
-  if (!yonnectionsMap.has(name ?? '__default')) {
+export function getConnection(name?: string): Connection {
+  if (!connectionsMap.has(name ?? '__default')) {
     throw new Error(`${name ?? 'default'} connection has not been made.`);
   }
 
-  return yonnectionsMap.get(name ?? '__default')!;
+  return connectionsMap.get(name ?? '__default')!;
 
 }
 
-export function getDefaultYonnection() {
-  return getYonnection();
+export function getDefaultConnection() {
+  return getConnection();
+}
+
+export function connect(connectionString: string) {
+  return new Connection(connectionString).connect();
 }

@@ -1,7 +1,10 @@
 export {
-  Yonnection
-} from './lib/Yonnection.ts';
+  Connection,
+  getConnection,
+  getDefaultConnection,
+  connect
+} from './lib/Connection.ts';
 
 export {
-  Yuery
-} from './lib/Yuery.ts';
+  Query
+} from './lib/Query.ts';
