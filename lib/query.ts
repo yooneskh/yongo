@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { deepMerge, Database, Collection, ObjectId } from '../deps.ts';
-import { Connection, getDefaultConnection } from './Connection.ts';
+import { Connection, getDefaultConnection } from './connection.ts';
 
 
 export interface IQueryPopulate {
@@ -68,7 +68,7 @@ export class Query<T> {
 
         const query = new Query(populate.collection, this.connection);
         query.where({ _id: { $in: document[key].map((it: any) => it instanceof ObjectId ? it : new ObjectId(it)) }});
-        document[key] = await query.query();
+        document[key] = await query.query(); // todo: select only wanted fields
 
         if (document[key]) {
           await Promise.all(
@@ -79,22 +79,11 @@ export class Query<T> {
         }
 
       }
-      else if (typeof document[key] === 'string') {
+      else if (typeof document[key] === 'string' || document[key] instanceof ObjectId) {
 
         const query = new Query(populate.collection, this.connection);
-        query.where({ _id: new ObjectId(document[key]) }); // todo: select only wanted fields
-        document[key] = await query.queryOne();
-
-        if (document[key]) {
-          await this.populateDocument(document[key], !keyPrefix ? key : `${keyPrefix}.${key}`);
-        }
-
-      }
-      else if (document[key] instanceof ObjectId) {
-
-        const query = new Query(populate.collection, this.connection);
-        query.where({ _id: document[key] }); // todo: select only wanted fields
-        document[key] = await query.queryOne();
+        query.where({ _id: typeof document[key] === 'string' ? (new ObjectId(document[key])) : (document[key]) });
+        document[key] = await query.queryOne(); // todo: select only wanted fields
 
         if (document[key]) {
           await this.populateDocument(document[key], !keyPrefix ? key : `${keyPrefix}.${key}`);

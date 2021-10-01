@@ -3,8 +3,17 @@ export {
   getConnection,
   getDefaultConnection,
   connect
-} from './lib/Connection.ts';
+} from './lib/connection.ts';
 
 export {
   Query
-} from './lib/Query.ts';
+} from './lib/query.ts';
+
+export {
+  makeCollectionName
+} from './lib/util.ts';
+
+export {
+  registerPopulateItem,
+  transformToQueryPopulates
+} from './lib/populate-registry.ts';
