@@ -119,6 +119,14 @@ export class Query<T> {
     this.populates.push(...populates);
   }
 
+  public skips(skip: number) {
+    this.skip = skip;
+  }
+
+  public limits(limit: number) {
+    this.limit = limit;
+  }
+
 
   public async query(): Promise<T[]> {
 
