@@ -1,4 +1,8 @@
 export {
+  ObjectId
+} from './deps.ts';
+
+export {
   Connection,
   getConnection,
   getDefaultConnection,
