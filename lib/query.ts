@@ -59,7 +59,7 @@ export class Query<T> {
   }
 
   private async populateDocument(document: any, keyPrefix = '') {
-    for (const key of Object.keys(document)) {
+    for (const key of Object.keys(document ?? {})) {
 
       const populate = this.populates.find(it => it.path === (!keyPrefix ? key : `${keyPrefix}.${key}`));
       if (!populate) continue;
@@ -150,7 +150,10 @@ export class Query<T> {
 
     const document = await this.collection.findOne(this.filters, { projection: this.selects });
 
-    await this.populateDocument(document);
+    if (document) {
+      await this.populateDocument(document);
+    }
+
     return document;
 
   }
