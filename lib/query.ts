@@ -58,6 +58,41 @@ export class Query<T> {
     return payload;
   }
 
+  private normalizeIdValue(value: unknown) {
+    if (value === null || value === undefined || !['string', 'object'].includes(typeof value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      return new ObjectId(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(it => new ObjectId(it));
+    }
+
+    const valueObject = value as Record<string, unknown>;
+
+    for (const key in valueObject) {
+      if (key.startsWith('$')) {
+        valueObject[key] = this.normalizeIdValue(valueObject[key]);
+      }
+    }
+
+  }
+
+  private normalizeFilters(filters: any) {
+
+    for (const key in filters) {
+      if (key === '_id') {
+        filters[key] = this.normalizeIdValue(filters[key]);
+      }
+    }
+
+    return filters;
+
+  }
+
   private async populateDocument(document: any, keyPrefix = '') {
     for (const key of Object.keys(document ?? {})) {
 
@@ -130,7 +165,7 @@ export class Query<T> {
 
   public async query(): Promise<T[]> {
 
-    const query = this.collection.find(this.filters, { projection: this.selects });
+    const query = this.collection.find(this.normalizeFilters(this.filters), { projection: this.selects });
 
     query.sort(this.sorts);
     if (this.limit) query.limit(this.limit);
@@ -148,7 +183,7 @@ export class Query<T> {
 
   public async queryOne(): Promise<T | undefined> {
 
-    const document = await this.collection.findOne(this.filters, { projection: this.selects });
+    const document = await this.collection.findOne(this.normalizeFilters(this.filters), { projection: this.selects });
 
     if (document) {
       await this.populateDocument(document);
@@ -159,7 +194,7 @@ export class Query<T> {
   }
 
   public count(): Promise<number> {
-    return this.collection.countDocuments(this.filters);
+    return this.collection.countDocuments(this.normalizeFilters(this.filters));
   }
 
   public async insert(): Promise<T | undefined> {
@@ -168,19 +203,19 @@ export class Query<T> {
   }
 
   public commitMany() {
-    return this.collection.updateMany(this.filters, { $set: this.getNormalizedPayload() } as any);
+    return this.collection.updateMany(this.normalizeFilters(this.filters), { $set: this.getNormalizedPayload() } as any);
   }
 
   public commit() {
-    return this.collection.updateOne(this.filters, { $set: this.getNormalizedPayload() } as any);
+    return this.collection.updateOne(this.normalizeFilters(this.filters), { $set: this.getNormalizedPayload() } as any);
   }
 
   public deleteMany() {
-    return this.collection.deleteMany(this.filters);
+    return this.collection.deleteMany(this.normalizeFilters(this.filters));
   }
 
   public delete() {
-    return this.collection.deleteOne(this.filters);
+    return this.collection.deleteOne(this.normalizeFilters(this.filters));
   }
 
 }
