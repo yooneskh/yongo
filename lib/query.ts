@@ -59,7 +59,7 @@ export class Query<T> {
   }
 
   private normalizeIdValue(value: unknown) {
-    if (value === null || value === undefined || !['string', 'object'].includes(typeof value)) {
+    if (value === null || value === undefined || value instanceof ObjectId || !['string', 'object'].includes(typeof value)) {
       return value;
     }
 
@@ -78,6 +78,8 @@ export class Query<T> {
         valueObject[key] = this.normalizeIdValue(valueObject[key]);
       }
     }
+
+    return valueObject;
 
   }
 
