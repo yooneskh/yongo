@@ -22,23 +22,39 @@ export interface IModelPopulateItem {
 }
 
 export function transformToQueryPopulates(model: string, populates: IModelPopulateItem[]): IQueryPopulate[] {
-  return populates.map(populate => {
+  return populates.flatMap(populate => {
 
+    const keyParts = populate.keyPath.split('.');
+    const result: IQueryPopulate[] = [];
+
+    const chain: string[] = [];
+    let usedChainIndex = 0;
     let targetModel = model;
 
-    for (const keyPart of populate.keyPath.split('.')) {
-      targetModel = registry.find(it => it.model === targetModel && it.key === keyPart)?.ref ?? '';
+    while (keyParts.length > 0) {
+
+      chain.push(keyParts.shift()!);
+
+      const registeryItem = registry.find(it =>
+        it.model === targetModel && it.key === chain.slice(usedChainIndex).join('.')
+      );
+
+      if (registeryItem) {
+
+        result.push({
+          path: chain.join('.'),
+          collection: makeCollectionName(registeryItem.ref),
+          fields: populate.fields
+        });
+
+        targetModel = registeryItem.ref;
+        usedChainIndex = chain.length;
+
+      }
+
     }
 
-    if (!targetModel) {
-      throw new Error(`could not populate ${populate.keyPath} of ${model}`);
-    }
-
-    return {
-      path: populate.keyPath,
-      collection: makeCollectionName(targetModel),
-      fields: populate.fields
-    };
+    return result;
 
   });
 }

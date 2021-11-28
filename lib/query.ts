@@ -96,10 +96,29 @@ export class Query<T> {
   }
 
   private async populateDocument(document: any, keyPrefix = '') {
-    for (const key of Object.keys(document ?? {})) {
+    if (!document) return;
 
-      const populate = this.populates.find(it => it.path === (!keyPrefix ? key : `${keyPrefix}.${key}`));
-      if (!populate) continue;
+    for (const key of Object.keys(document)) {
+
+      const populate = this.populates.find(it => it.path === (keyPrefix ? `${keyPrefix}.${key}` : key));
+
+      if (!populate) {
+        if (!document[key] || typeof document[key] !== 'object') continue;
+
+        if (Array.isArray(document[key])) {
+          for (const subdocument of document[key]) {
+            // todo: prune if prefix does not exist in any populate
+            await this.populateDocument(subdocument, keyPrefix ? `${keyPrefix}.${key}` : key);
+          }
+        }
+        else {
+          // todo: prune if prefix does not exist in any populate
+          await this.populateDocument(document[key], keyPrefix ? `${keyPrefix}.${key}` : key)
+        }
+
+        continue;
+
+      }
 
       if (Array.isArray(document[key])) {
 
@@ -110,7 +129,7 @@ export class Query<T> {
         if (document[key]) {
           await Promise.all(
             document[key].map((it: any) =>
-              this.populateDocument(it, !keyPrefix ? key : `${keyPrefix}.${key}`)
+              this.populateDocument(it, keyPrefix ? `${keyPrefix}.${key}` : key)
             )
           );
         }
@@ -123,12 +142,13 @@ export class Query<T> {
         document[key] = await query.queryOne(); // todo: select only wanted fields
 
         if (document[key]) {
-          await this.populateDocument(document[key], !keyPrefix ? key : `${keyPrefix}.${key}`);
+          await this.populateDocument(document[key], keyPrefix ? `${keyPrefix}.${key}` : key);
         }
 
       }
 
     }
+
   }
 
 
