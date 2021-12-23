@@ -2,9 +2,9 @@ export {
   MongoClient,
   Database,
   Collection
-} from "https://deno.land/x/mongo@v0.27.0/mod.ts";
+} from "https://deno.land/x/mongo@v0.29.0/mod.ts";
 
-import { Bson } from 'https://deno.land/x/mongo@v0.27.0/mod.ts';
+import { Bson } from 'https://deno.land/x/mongo@v0.29.0/mod.ts';
 export const ObjectId = Bson.ObjectId;
 
 export {
