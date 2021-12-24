@@ -4,8 +4,9 @@ export {
   Collection
 } from "https://deno.land/x/mongo@v0.29.0/mod.ts";
 
-import { Bson } from 'https://deno.land/x/mongo@v0.29.0/mod.ts';
-export const ObjectId = Bson.ObjectId;
+export {
+  ObjectId
+} from "https://deno.land/x/web_bson@v0.1.2/mod.ts";
 
 export {
   plural,
