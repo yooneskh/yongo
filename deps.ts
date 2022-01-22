@@ -2,7 +2,7 @@ export {
   MongoClient,
   Database,
   Collection
-} from "https://deno.land/x/mongo@v0.29.0/mod.ts";
+} from "https://deno.land/x/mongo@v0.29.1/mod.ts";
 
 export {
   ObjectId
