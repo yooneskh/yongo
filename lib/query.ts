@@ -2,6 +2,7 @@
 
 import { deepMerge, Database, Collection, ObjectId } from '../deps.ts';
 import { Connection, getDefaultConnection } from './connection.ts';
+import { traverseObject } from './util.ts';
 
 
 export interface IQueryPopulate {
@@ -58,25 +59,28 @@ export class Query<T> {
     return payload;
   }
 
-  private normalizeIdValue(value: unknown) {
+  private normalizeIdValue(value: unknown): any {
     if (value === null || value === undefined || value instanceof ObjectId || !['string', 'object'].includes(typeof value)) {
       return value;
     }
 
     if (typeof value === 'string') {
-      return new ObjectId(value);
+      try {
+        return new ObjectId(value);
+      }
+      catch {
+        return value;
+      }
     }
 
     if (Array.isArray(value)) {
-      return value.map(it => new ObjectId(it));
+      return value.map(it => this.normalizeIdValue(it));
     }
 
     const valueObject = value as Record<string, unknown>;
 
     for (const key in valueObject) {
-      if (key.startsWith('$')) {
-        valueObject[key] = this.normalizeIdValue(valueObject[key]);
-      }
+      valueObject[key] = this.normalizeIdValue(valueObject[key]);
     }
 
     return valueObject;
@@ -85,14 +89,21 @@ export class Query<T> {
 
   private normalizeFilters(filters: any) {
 
-    for (const key in filters) {
+    traverseObject(filters, (key, value) => {
       if (key === '_id') {
-        filters[key] = this.normalizeIdValue(filters[key]);
+        return this.normalizeIdValue(value);
       }
-    }
+      else {
+        return value;
+      }
+    });
 
     return filters;
 
+  }
+
+  private getNormalizedFilters() {
+    return this.normalizeFilters(this.filters);
   }
 
   private async populateDocument(document: any, keyPrefix = '') {
@@ -187,7 +198,7 @@ export class Query<T> {
 
   public async query(): Promise<T[]> {
 
-    const query = this.collection.find(this.normalizeFilters(this.filters), { projection: this.selects });
+    const query = this.collection.find(this.getNormalizedFilters(), { projection: this.selects });
 
     query.sort(this.sorts);
     if (this.limit) query.limit(this.limit);
@@ -205,7 +216,7 @@ export class Query<T> {
 
   public async queryOne(): Promise<T | undefined> {
 
-    const document = await this.collection.findOne(this.normalizeFilters(this.filters), { projection: this.selects });
+    const document = await this.collection.findOne(this.getNormalizedFilters(), { projection: this.selects });
 
     if (document) {
       await this.populateDocument(document);
@@ -216,7 +227,7 @@ export class Query<T> {
   }
 
   public count(): Promise<number> {
-    return this.collection.countDocuments(this.normalizeFilters(this.filters));
+    return this.collection.countDocuments(this.getNormalizedFilters());
   }
 
   public async insert(): Promise<T | undefined> {
@@ -225,19 +236,19 @@ export class Query<T> {
   }
 
   public commitMany() {
-    return this.collection.updateMany(this.normalizeFilters(this.filters), { $set: this.getNormalizedPayload() } as any);
+    return this.collection.updateMany(this.getNormalizedFilters(), { $set: this.getNormalizedPayload() } as any);
   }
 
   public commit() {
-    return this.collection.updateOne(this.normalizeFilters(this.filters), { $set: this.getNormalizedPayload() } as any);
+    return this.collection.updateOne(this.getNormalizedFilters(), { $set: this.getNormalizedPayload() } as any);
   }
 
   public deleteMany() {
-    return this.collection.deleteMany(this.normalizeFilters(this.filters));
+    return this.collection.deleteMany(this.getNormalizedFilters());
   }
 
   public delete() {
-    return this.collection.deleteOne(this.normalizeFilters(this.filters));
+    return this.collection.deleteOne(this.getNormalizedFilters());
   }
 
 }

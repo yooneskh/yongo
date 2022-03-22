@@ -2,11 +2,11 @@ export {
   MongoClient,
   Database,
   Collection
-} from "https://deno.land/x/mongo@v0.29.1/mod.ts";
+} from "https://deno.land/x/mongo@v0.29.3/mod.ts";
 
 export {
   ObjectId
-} from "https://deno.land/x/web_bson@v0.1.2/mod.ts";
+} from "https://deno.land/x/web_bson@v0.1.10/mod.ts";
 
 export {
   plural,
