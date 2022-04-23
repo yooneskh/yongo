@@ -2,16 +2,16 @@ export {
   MongoClient,
   Database,
   Collection
-} from "https://deno.land/x/mongo@v0.29.3/mod.ts";
+} from "https://deno.land/x/mongo@v0.29.4/mod.ts";
 
 export {
   ObjectId
-} from "https://deno.land/x/web_bson@v0.1.10/mod.ts";
+} from "https://deno.land/x/web_bson@v0.2.1/mod.ts";
 
 export {
   plural,
   singular
-} from 'https://deno.land/x/deno_plural@1.0.1/mod.ts';
+} from 'https://deno.land/x/deno_plural@1.1.0/mod.ts';
 
 export {
   deepmerge as deepMerge
@@ -19,7 +19,7 @@ export {
 
 export {
   Lock
-} from 'https://deno.land/x/unified_deno_lock@v0.1.0/mod.ts';
+} from 'https://deno.land/x/unified_deno_lock@v0.1.1/mod.ts';
 
 export {
   IniterMap
