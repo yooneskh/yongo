@@ -16,3 +16,11 @@ export {
 export {
   deepmerge as deepMerge
 } from 'https://deno.land/x/deepmerge@1.0.3/mod.ts';
+
+export {
+  Lock
+} from 'https://deno.land/x/unified_deno_lock@v0.1.0/mod.ts';
+
+export {
+  IniterMap
+} from 'https://deno.land/x/initer_map@v1.0.0/mod.ts';

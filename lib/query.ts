@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { deepMerge, Database, Collection, ObjectId } from '../deps.ts';
-import { Connection, getDefaultConnection } from './connection.ts';
+import { Connection, ensureConnection, getConnection } from './connection.ts';
 import { traverseObject } from './util.ts';
 
 
@@ -14,7 +14,7 @@ export interface IQueryPopulate {
 
 export class Query<T> {
 
-  private connection: Connection;
+  private connection?: Connection;
   private filters: any = {};
   private sorts: any = {};
   private selects: any = {};
@@ -23,13 +23,36 @@ export class Query<T> {
   private limit: number | undefined;
   private skip: number | undefined;
 
-  private database: Database;
-  private collection: Collection<T>;
+  private database?: Database;
+  private collection?: Collection<T>;
 
-  constructor(collectionName: string, connection?: Connection) {
-    this.connection = connection ?? getDefaultConnection();
-    this.database = this.connection.getClient().database();
-    this.collection = this.database.collection<T>(collectionName);
+  constructor(private collectionName: string, private connectionName?: string) {
+    this.setupConnection();
+  }
+
+  private async setupConnection() {
+    try {
+
+      this.connection = await getConnection(this.connectionName);
+
+      this.database = this.connection.getClient().database();
+      this.collection = this.database.collection<T>(this.collectionName);
+
+    }
+    catch (error) {
+
+      this.connection?.disconnect();
+      this.connection = undefined;
+      this.database = undefined;
+      this.collection = undefined;
+
+      throw error;
+
+    }
+  }
+
+  private async ensureConnection() {
+    await ensureConnection(this.connectionName);
   }
 
 
@@ -109,6 +132,8 @@ export class Query<T> {
   private async populateDocument(document: any, keyPrefix = '') {
     if (!document) return;
 
+    await this.ensureConnection();
+
     for (const key of Object.keys(document)) {
 
       const populate = this.populates.find(it => it.path === (keyPrefix ? `${keyPrefix}.${key}` : key));
@@ -133,7 +158,7 @@ export class Query<T> {
 
       if (Array.isArray(document[key])) {
 
-        const query = new Query(populate.collection, this.connection);
+        const query = new Query(populate.collection, this.connectionName);
         query.where({ _id: { $in: document[key].map((it: any) => it instanceof ObjectId ? it : new ObjectId(it)) }});
         document[key] = await query.query(); // todo: select only wanted fields
 
@@ -148,7 +173,7 @@ export class Query<T> {
       }
       else if (typeof document[key] === 'string' || document[key] instanceof ObjectId) {
 
-        const query = new Query(populate.collection, this.connection);
+        const query = new Query(populate.collection, this.connectionName);
         query.where({ _id: typeof document[key] === 'string' ? (new ObjectId(document[key])) : (document[key]) });
         document[key] = await query.queryOne(); // todo: select only wanted fields
 
@@ -198,7 +223,9 @@ export class Query<T> {
 
   public async query(): Promise<T[]> {
 
-    const query = this.collection.find(this.getNormalizedFilters(), { projection: this.selects });
+    await this.ensureConnection();
+
+    const query = this.collection!.find(this.getNormalizedFilters(), { projection: this.selects });
 
     query.sort(this.sorts);
     if (this.limit) query.limit(this.limit);
@@ -216,7 +243,9 @@ export class Query<T> {
 
   public async queryOne(): Promise<T | undefined> {
 
-    const document = await this.collection.findOne(this.getNormalizedFilters(), { projection: this.selects });
+    await this.ensureConnection();
+
+    const document = await this.collection!.findOne(this.getNormalizedFilters(), { projection: this.selects });
 
     if (document) {
       await this.populateDocument(document);
@@ -226,29 +255,38 @@ export class Query<T> {
 
   }
 
-  public count(): Promise<number> {
-    return this.collection.countDocuments(this.getNormalizedFilters());
+  public async count(): Promise<number> {
+    await this.ensureConnection();
+    return this.collection!.countDocuments(this.getNormalizedFilters());
   }
 
   public async insert(): Promise<T | undefined> {
-    const id = await this.collection.insertOne(this.getNormalizedPayload());
-    return this.collection.findOne({ _id: id }); // todo: check if payload itself has id
+
+    await this.ensureConnection();
+
+    const id = await this.collection!.insertOne(this.getNormalizedPayload());
+    return this.collection!.findOne({ _id: id }); // todo: check if payload itself has id
+
   }
 
-  public commitMany() {
-    return this.collection.updateMany(this.getNormalizedFilters(), { $set: this.getNormalizedPayload() } as any);
+  public async commitMany() {
+    await this.ensureConnection();
+    return this.collection!.updateMany(this.getNormalizedFilters(), { $set: this.getNormalizedPayload() } as any);
   }
 
-  public commit() {
-    return this.collection.updateOne(this.getNormalizedFilters(), { $set: this.getNormalizedPayload() } as any);
+  public async commit() {
+    await this.ensureConnection();
+    return this.collection!.updateOne(this.getNormalizedFilters(), { $set: this.getNormalizedPayload() } as any);
   }
 
-  public deleteMany() {
-    return this.collection.deleteMany(this.getNormalizedFilters());
+  public async deleteMany() {
+    await this.ensureConnection();
+    return this.collection!.deleteMany(this.getNormalizedFilters());
   }
 
-  public delete() {
-    return this.collection.deleteOne(this.getNormalizedFilters());
+  public async delete() {
+    await this.ensureConnection();
+    return this.collection!.deleteOne(this.getNormalizedFilters());
   }
 
 }
