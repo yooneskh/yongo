@@ -75,7 +75,3 @@ export function getDefaultConnection() {
 export function connect(connectionString: string) {
   return new Connection(connectionString).connect();
 }
-
-export async function ensureConnection(connectionName?: string) {
-  await connectionLocks.get(connectionName ?? DEFAULT_CONNECTION_KEY).knock();
-}

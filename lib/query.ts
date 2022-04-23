@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 
-import { deepMerge, Database, Collection, ObjectId } from '../deps.ts';
-import { Connection, ensureConnection, getConnection } from './connection.ts';
+import { deepMerge, Database, Collection, ObjectId, Lock } from '../deps.ts';
+import { Connection, getConnection } from './connection.ts';
 import { traverseObject } from './util.ts';
 
 
@@ -26,6 +26,9 @@ export class Query<T> {
   private database?: Database;
   private collection?: Collection<T>;
 
+  private connectionMadeLock = new Lock();
+
+
   constructor(private collectionName: string, private connectionName?: string) {
     this.setupConnection();
   }
@@ -33,10 +36,14 @@ export class Query<T> {
   private async setupConnection() {
     try {
 
+      this.connectionMadeLock.lock();
+
       this.connection = await getConnection(this.connectionName);
 
       this.database = this.connection.getClient().database();
       this.collection = this.database.collection<T>(this.collectionName);
+
+      this.connectionMadeLock.unlock();
 
     }
     catch (error) {
@@ -46,13 +53,15 @@ export class Query<T> {
       this.database = undefined;
       this.collection = undefined;
 
+      this.connectionMadeLock.unlock();
+
       throw error;
 
     }
   }
 
   private async ensureConnection() {
-    await ensureConnection(this.connectionName);
+    await this.connectionMadeLock.knock();
   }
 
 
