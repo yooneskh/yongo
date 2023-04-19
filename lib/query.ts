@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 
-import { deepMerge, Database, Collection, ObjectId, Lock } from '../deps.ts';
+import { deepMerge, Database, Collection, Document, ObjectId, Lock } from '../deps.ts';
 import { Connection, getConnection } from './connection.ts';
 import { traverseObject } from './util.ts';
 
@@ -12,7 +12,7 @@ export interface IQueryPopulate {
 }
 
 
-export class Query<T> {
+export class Query<T extends Document> {
 
   private connection?: Connection;
   private filters: any = {};
