@@ -1,4 +1,5 @@
-import { Lock, IniterMap } from '../deps.ts';
+import { Lock } from 'unified_deno_lock';
+import { IniterMap } from 'initer_map';
 
 
 export const connectionLocks = new IniterMap<string, Lock>(() => {

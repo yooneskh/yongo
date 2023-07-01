@@ -1,4 +1,4 @@
-import { MongoClient } from '../deps.ts';
+import { MongoClient } from 'mongo';
 import { connectionLocks } from '../util/connection-locks.ts';
 
 

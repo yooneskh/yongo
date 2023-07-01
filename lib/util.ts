@@ -1,4 +1,4 @@
-import { plural } from '../deps.ts';
+import { plural } from 'deno_plural';
 
 
 export function makeCollectionName(modelName: string) {

@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "mongo": "https://deno.land/x/mongo@v0.31.2/mod.ts",
+    "web_bson": "https://deno.land/x/web_bson@v0.3.0/mod.js",
+    "deno_plural": "https://deno.land/x/deno_plural@2.0.0/mod.ts",
+    "deepmerge": "https://deno.land/x/deepmerge@1.0.3/mod.ts",
+    "unified_deno_lock": "https://deno.land/x/unified_deno_lock@v0.1.1/mod.ts",
+    "initer_map": "https://deno.land/x/initer_map@v1.0.0/mod.ts"
+  }
+}

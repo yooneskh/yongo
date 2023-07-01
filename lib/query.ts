@@ -1,6 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
 
-import { deepMerge, Database, Collection, Document, ObjectId, Lock } from '../deps.ts';
+import { deepmerge } from 'deepmerge';
+import { Database, Collection, Document } from 'mongo';
+import { ObjectId } from 'web_bson';
+import { Lock } from 'unified_deno_lock';
 import { Connection, getConnection } from './connection.ts';
 import { traverseObject } from './util.ts';
 
@@ -198,7 +201,7 @@ export class Query<T extends Document> {
 
 
   public where(query: any) {
-    this.filters = deepMerge(this.filters, query);
+    this.filters = deepmerge(this.filters, query);
   }
 
   public projectIn(key: string) {
@@ -210,7 +213,7 @@ export class Query<T extends Document> {
   }
 
   public sort(sort: any) {
-    this.sorts = deepMerge(this.sorts, sort);
+    this.sorts = deepmerge(this.sorts, sort);
   }
 
   public put(key: string, value: any) {

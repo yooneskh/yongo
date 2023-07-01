@@ -1,6 +1,6 @@
 export {
   ObjectId
-} from './deps.ts';
+} from 'web_bson';
 
 export {
   Connection,
