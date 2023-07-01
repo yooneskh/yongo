@@ -1,6 +1,5 @@
-export {
-  ObjectId
-} from 'web_bson';
+import { ObjectId as _ObjectId } from 'web_bson';
+export const ObjectId = _ObjectId;
 
 export {
   Connection,
