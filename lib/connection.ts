@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongo';
+import { MongoClient } from 'https://deno.land/x/mongo@v0.31.2/mod.ts';
 import { connectionLocks } from '../util/connection-locks.ts';
 
 

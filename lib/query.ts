@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
 
-import { deepmerge } from 'deepmerge';
-import { Database, Collection, Document } from 'mongo';
-import { ObjectId } from 'web_bson';
-import { Lock } from 'unified_deno_lock';
+import { deepmerge } from 'https://deno.land/x/deepmerge@1.0.3/mod.ts';
+import { Database, Collection, Document } from 'https://deno.land/x/mongo@v0.31.2/mod.ts';
+import { ObjectId } from 'https://deno.land/x/web_bson@v0.3.0/mod.js';
+import { Lock } from 'https://deno.land/x/unified_deno_lock@v0.1.1/mod.ts';
 import { Connection, getConnection } from './connection.ts';
 import { traverseObject } from './util.ts';
 
