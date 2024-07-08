@@ -5,18 +5,18 @@ export {
   Connection,
   getConnection,
   getDefaultConnection,
-  connect
+  connect,
 } from './lib/connection.ts';
 
 export {
-  Query
+  Query,
 } from './lib/query.ts';
 
 export {
-  makeCollectionName
+  makeCollectionName,
 } from './lib/util.ts';
 
 export {
   registerPopulateItem,
-  transformToQueryPopulates
+  transformToQueryPopulates,
 } from './lib/populate-registry.ts';

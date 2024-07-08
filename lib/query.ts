@@ -172,7 +172,9 @@ export class Query<T extends Document> {
 
         const query = new Query(populate.collection, this.connectionName);
         query.where({ _id: { $in: document[key].map((it: any) => it instanceof ObjectId ? it : new ObjectId(it)) }});
-        document[key] = await query.query(); // todo: select only wanted fields
+        const queryResult = await query.query(); // todo: select only wanted fields
+
+        document[key] = document[key].map((it: any) => queryResult.find(i => String(i._id) === String(it)));
 
         if (document[key]) {
           await Promise.all(
